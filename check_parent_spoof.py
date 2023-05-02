@@ -6,16 +6,20 @@
 import logging
 from typing import List
 
-from volatility.framework import constants, exceptions, renderers, interfaces
-from volatility.framework.configuration import requirements
-from volatility.framework.objects import utility
-from volatility.plugins.windows import pslist, poolscanner
+from volatility3.framework import constants, exceptions, renderers, interfaces
+from volatility3.framework.configuration import requirements
+from volatility3.framework.objects import utility
+from volatility3.plugins.windows import pslist
+from volatility3.framework.symbols.windows import versions
 
 vollog = logging.getLogger(__name__)
 
 
 class Check_parent_spoof(interfaces.plugins.PluginInterface):
     """Lists process command line arguments."""
+    
+    _required_framework_version = (2, 0, 0)
+    _version = (2, 0, 0)
 
     @classmethod
     def get_requirements(cls) -> List[interfaces.configuration.RequirementInterface]:
@@ -25,7 +29,7 @@ class Check_parent_spoof(interfaces.plugins.PluginInterface):
                                                      description = 'Memory layer for the kernel',
                                                      architectures = ["Intel32", "Intel64"]),
             requirements.SymbolTableRequirement(name = "nt_symbols", description = "Windows kernel symbols"),
-            requirements.PluginRequirement(name = 'pslist', plugin = pslist.PsList, version = (1, 0, 0)),
+            requirements.PluginRequirement(name = 'pslist', plugin = pslist.PsList, version = (2, 0, 0)),
             requirements.ListRequirement(name = 'pid',
                                          element_type = int,
                                          description = "Process IDs to include (all other processes are excluded)",
@@ -45,7 +49,7 @@ class Check_parent_spoof(interfaces.plugins.PluginInterface):
         CONHOST_PROCESS_ID_OFFSET = -1
         
         # OwnerProcessId only exists as a union from Windows 8 or later.
-        is_win8_or_later = poolscanner.os_distinguisher(version_check=lambda x: x >= (6, 2),
+        is_win8_or_later = versions.OsDistinguisher(version_check=lambda x: x >= (6, 2),
                                                          fallback_checks=[("_EPROCESS", "OwnerProcessId", True)])
         if not is_win8_or_later(self.context, self.config["nt_symbols"]):
             vollog.warning("check_parent_spoof doesn't work in Windows versions prior to Windows 8")
