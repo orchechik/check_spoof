@@ -4,10 +4,10 @@
 import logging
 from typing import List
 
-from volatility.framework import constants, exceptions, renderers, interfaces
-from volatility.framework.configuration import requirements
-from volatility.framework.objects import utility
-from volatility.plugins.windows import pslist
+from volatility3.framework import constants, exceptions, renderers, interfaces
+from volatility3.framework.configuration import requirements
+from volatility3.framework.objects import utility
+from volatility3.plugins.windows import pslist
 from ntpath import basename
 
 vollog = logging.getLogger(__name__)
@@ -15,6 +15,9 @@ vollog = logging.getLogger(__name__)
 
 class Check_peb_spoof(interfaces.plugins.PluginInterface):
     """Lists Peb-masquerading spoofed processes."""
+   
+    _required_framework_version = (2, 0, 0)
+    _version = (2, 0, 0)
 
     @classmethod
     def get_requirements(cls) -> List[interfaces.configuration.RequirementInterface]:
@@ -24,7 +27,7 @@ class Check_peb_spoof(interfaces.plugins.PluginInterface):
                                                      description = 'Memory layer for the kernel',
                                                      architectures = ["Intel32", "Intel64"]),
             requirements.SymbolTableRequirement(name = "nt_symbols", description = "Windows kernel symbols"),
-            requirements.PluginRequirement(name = 'pslist', plugin = pslist.PsList, version = (1, 0, 0)),
+            requirements.PluginRequirement(name = 'pslist', plugin = pslist.PsList, version = (2, 0, 0)),
             requirements.ListRequirement(name = 'pid',
                                          element_type = int,
                                          description = "Process IDs to include (all other processes are excluded)",
